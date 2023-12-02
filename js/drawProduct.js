@@ -1,9 +1,9 @@
- let params = {
+let params = {
   perPages: 6,
   currentPages: 1,
   start :0,
   end: 6,
-  q: ''
+  totalPages: 0
 };
 
 function getCookie(cname) {
@@ -20,7 +20,7 @@ function getCookie(cname) {
   }
   return "";
 }
-
+const pay = document.querySelector(".pays");
  let category = document.querySelector("#category");
  let buttonRight = document.querySelector("#btn-right");
  let numberPage =document.querySelector("#number-pages"); 
@@ -36,15 +36,28 @@ function getCookie(cname) {
       list= document.querySelector(".list"),
       listCard = document.querySelector(".listCard"),
       total = document.querySelector(".total"),
-      quantitys = document.querySelector(".quantity")
+      quantitys = document.querySelector(".quantity"),
+      openSearch = document.querySelector(".search"),
+      closeSearch = document.querySelector(".closesearch"),
+      userProfile=document.querySelector(".userProfile"),
+      closeProfile=document.querySelector(".closeProfile");
   let DATABASE = JSON.parse(localStorage.getItem('DATABASE'))
-
-  let product = DATABASE.PRODUCTS
-     
-    
-
-const totalPages = Math.ceil(product.length / params.perPages) ;
-
+  let product = DATABASE.PRODUCTS;
+  let ACCOUNTS = DATABASE.ACCOUNTS;
+  let ORDERS = DATABASE.ORDERS;
+  
+  userProfile.addEventListener("click",function (){
+      body.classList.add("show");
+  })
+  closeProfile.addEventListener("click",function (){
+    body.classList.remove("show");
+  });
+  openSearch.addEventListener("click", () => {
+    body.classList.add("opensearch");
+  });
+  closeSearch.addEventListener("click", () => {
+    body.classList.remove("opensearch");
+  });
 openShopping.addEventListener("click", () => {
   body.classList.add("active");
 })
@@ -52,10 +65,94 @@ openShopping.addEventListener("click", () => {
 closeShopping.addEventListener("click", () => {
   body.classList.remove("active")
 })
+var profileInfo=document.getElementById("s_profileInfo"),
+    profileOrder=document.getElementById("s_profileOrder"),
+    contentProfile=document.querySelector(".right-profile"),
+    contentOrder=document.querySelector(".order-info");
+    profileInfo.addEventListener("click", () => {
+      contentProfile.style.display="block";
+      contentOrder.style.display="none";
+      
+    });
+    profileOrder.addEventListener("click", () => {
+      contentOrder.style.display="block";
+      contentProfile.style.display="none";
+      
+    });
 
+      // profile
+  
+    function actProfileToggle() {
+      ACCOUNTS.forEach(function (account) {
+        let cookieValue=getCookie("user");
+          if (account.email === cookieValue) {
+              renderProfileDetail(account);
+             // renderProfileOrder(account.ID);
+          }
+      });
+  };
+   actProfileToggle();
+    function renderProfileDetail(account) {
+    
+      let p_name = document.getElementById('p_name');
+      let p_number = document.getElementById('p_number');
+      let p_email = document.getElementById('p_email');
+      let p_address = document.getElementById('p_address');
+      let p_nameTitle = document.getElementById('p_nameTitle');
+  
+      p_nameTitle.innerText = account.username;
+      p_name.value = account.username;
+      p_number.value = account.phoneNumber;
+      p_email.value = account.email;
+      p_address.value = account.address;
+  
+  
+      //Update profile
+      let updateProfile = document.getElementById('updateProfile');
+      updateProfile.addEventListener('click', updateUserProfile);
+  
+      function updateUserProfile() {
+          account.username = p_name.value;
+          account.phoneNumber = p_number.value;
+          account.email = p_email.value;
+          account.address = p_address.value;
+          localStorage.setItem('DATABASE', JSON.stringify(DATABASE));
+          alert('Update Thành Công !');
+      }
+  }
+//   function renderProfileOrder(ID) {
+//     let profileTbody = document.getElementById("profileTbody");
+//     let content = '';
+//     ORDERS.forEach(order => {
+//         if (order.userID === ID) {
+//             let productList = ``;
+//             let total_price = 0;
+//             // order.products.forEach(p => {
+//             //     productList += `
+//             //         ${p.productName} (x${p.quantity})<br>
+//             //     `
+//             //     total_price += p.quantity * p.price
+//             // });
+
+//             content += `
+//             <tr>
+//                 <th scope="row" class="text-info">${order.orderId}</th>
+//                 <td>${order.createDate}</td>
+//                 <td>${productList}</td>
+//                 <td>${formatter.format(total_price)}</td>
+//                 <td class="text-center">${order.status}</td>
+//             </tr>
+//             `;
+//         }
+//     })
+//     profileTbody.innerHTML = content;
+// }
+      // end profile
 let listCards = [];
 
 let productFilter = product ;
+params.totalPages = Math.ceil(productFilter.length / params.perPages) ;
+
  const drawProduct = (e) => {
     let arrayHTML = e.map((item , index) => {
       if (index >= params.start && index < params.end) {
@@ -63,13 +160,13 @@ let productFilter = product ;
                 <div class="content__product-item col-lg-3">
                       <img src="${item.thumbnail}" alt="">
                       <div class="desc">${item.title}</div>
-                      <div class="Drake_Price">${item.price}</div>
-                      <div class="Retail-Price">${item.saleprice}</div>
+                      <div class="Drake_Price"> giá giày: ${item.price}</div>
+                      <div class="Retail-Price">giá giảm: ${item.saleprice}</div>
                       <button onclick = "addToCard(${item.id})">Add To Card</button>
                       <span class="detail" onclick="btnDetail(${item.id})" id=${item.id}>Detail</span>
                 </div>
               `
-      }
+      } 
     });
     document.getElementById("products").innerHTML = arrayHTML.join('');
     
@@ -103,8 +200,8 @@ const reloadCard = () => {
                   price: value.price,
                   image: value.thumbnail,                                    
                   quantity: value.quantity                                  
-               }     ;
-    
+               };
+
       totalPrice = totalPrice + product[key].price * listCards[key].quantity
       count = count + value.quantity;
       if(value != null) {
@@ -130,6 +227,10 @@ const reloadCard = () => {
   })
 }
 
+pay.addEventListener('click' , () => {
+  listCards = []
+})
+    
 const changeQuantity = (key, quantity) => {
   if(quantity == 0) {
       delete listCards[key];
@@ -176,41 +277,73 @@ filter.addEventListener('submit', function(event){
       return true;
   })
   drawProduct(productFilter);
-  
+  params.totalPages = Math.ceil(productFilter.length / params.perPages);
+  renderListPages();
 })
+
+
+function getCurrentPage(currentPage){
+  params.currentPages = currentPage;
+  params.start = (params.currentPages - 1) * params.perPages;
+  params.end = params.currentPages * params.perPages;
+}
 
 if(productFilter.length > 6) {
     buttonRight.addEventListener("click", () => {
       params.currentPages++;
-      
-      if(params.currentPages > totalPages) {
-        params.currentPages = totalPages;
+      if(params.currentPages > params.totalPages) {
+        params.currentPages = params.totalPages;
       }
-      params.start = (params.currentPages - 1) * params.perPages;
-      params.end = params.currentPages * params.perPages;
+      getCurrentPage(params.currentPages)
       drawProduct(productFilter);
-      renderListPages();
+     
     })
     buttonLeft.addEventListener("click", () => {
       params.currentPages--;
-     
       if(params.currentPages  <= 1) {
         params.currentPages = 1;
       }
-      params.start = (params.currentPages - 1) * params.perPages;
-      params.end = params.currentPages * params.perPages;
+      getCurrentPage(params.currentPages);
       drawProduct(productFilter);
-      renderListPages();
+
     })
   }
 
     
   const renderListPages= () => {
+    if(params.totalPages == 1 || params.totalPages == 0) {
+      numberPage.innerHTML =''
+      var myList = document.querySelector('.content_pagging')
+      var listItems = myList.getElementsByTagName('li')
+      while (listItems.length > 0) {
+        myList.removeChild(listItems[0]);
+      }
+    } else {
       let html = '';
-      html+= `<li><a href="">${params.currentPages}</a></li>`;
+      html+= `<li><a href="#">${1}</a></li>`;
+      for(let i = 2 ; i <= params.totalPages ; i++) {
+        html += `<li><a href="#">${i}</a></li>`
+      }
       numberPage.innerHTML = html
+      var myList = document.querySelector('.content_pagging')
+      var listItems = myList.getElementsByTagName('li')
+      changePages()
+
+    }
     }
  renderListPages();
 
+ function changePages () {
+  const currentPages =document.querySelectorAll('.number-pages li')
+  for(let  i = 0 ; i < currentPages.length; i++) {
+    currentPages[i].addEventListener('click' , () => {
+      const value = i + 1;
+      params.currentPages = value;
+      getCurrentPage(params.currentPages);
+      drawProduct(productFilter);
+    })
+  }
+ }
 
+ changePages();
 

@@ -57,6 +57,7 @@ function Validator(options) {
     if (formElement) {
         let email;
         let token;
+        let password;
         // Khi submit form
         formElement.onsubmit = function (e) {
             e.preventDefault();
@@ -81,6 +82,9 @@ function Validator(options) {
                         }
                         if(input.name == 'token') {
                             token = input.value
+                        }
+                        if(input.name == 'password') {
+                            password = input.value 
                         }
                         switch(input.type) {
                             case 'radio':
@@ -113,13 +117,18 @@ function Validator(options) {
                         if(data.email == email){
                             datas = data
                         }
+                       
                      })
+                     
                     setCookie("token" , datas.ID , 30);
-                    if(datas && datas.role == 'user') {
+                    if(datas && datas.role == 'user' && datas.password == password) {
+                        
                         alert("đăng nhập thành công")
                         window.location.href = "index.html";
                         setCookie("user",datas.email);
-                    }  else {
+                    }  
+                    
+                    if(datas && datas.role == 'admin' && datas.password == password){
                         alert("đăng nhập thành công")
                         window.location.href = "admin.html";
                     }
